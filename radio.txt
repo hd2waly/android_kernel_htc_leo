@@ -1,0 +1,9 @@
+* daemon not running. starting it now on port 5037 *
+* daemon started successfully *
+D/RIL_WRAP(  129): ----------- HTC Ril Wrapper v0.8b4 starting ------------
+D/RIL_WRAP(  129): rmnet_mode=0
+W/RIL_WRAP(  129): RIL_Init arg[0]=/system/bin/rild
+W/RIL_WRAP(  129): RIL_Init arg[1]=-d
+W/RIL_WRAP(  129): RIL_Init arg[2]=/dev/smd0
+E/RILC    (  129): RIL_register: RIL version 2
+D/RIL_WRAP(  129): 05:13:27: UNSOL UNSOL_RESPONSE_RADIO_STATE_CHANGED

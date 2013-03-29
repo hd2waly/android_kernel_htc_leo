@@ -80,7 +80,7 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
-
+compiled
 *.orig
 *~
 \#*#

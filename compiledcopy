@@ -1,4 +1,5 @@
-CMP=../compiled
+mkdir compiled
+CMP=compiled
 
 #cleanup
 if [ -e $CMP ];

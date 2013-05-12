@@ -1209,14 +1209,6 @@ static struct android_pmem_platform_data android_pmem_venc_pdata = {
 	.memory_type = MEMTYPE_EBI1,
 };
 
-static struct android_pmem_platform_data android_pmem_audio_pdata = {
-	.name = "pmem_audio",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
-	.memory_type = MEMTYPE_EBI1,
-};
-
-
 static struct platform_device android_pmem_device = {
 	.name = "android_pmem",
 	.id = 0,
@@ -1229,11 +1221,6 @@ static struct platform_device android_pmem_adsp_device = {
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
-static struct platform_device android_pmem_audio_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_audio_pdata },
-};
 /*
 static struct platform_device android_pmem_kernel_ebi1_device = {
 	.name = "android_pmem",
@@ -1496,7 +1483,6 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_uart_dm1,
 	&htcleo_rfkill,
 	&msm_device_otg,
-//	&msm_device_gadget_peripheral,
 	&qsd_device_spi,
 	&msm_device_dmov,
 	&msm_device_nand,
@@ -1504,9 +1490,7 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_rtc,
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_audio_device,
-    &android_pmem_venc_device,
-//    &android_pmem_kernel_ebi1_device,
+	&android_pmem_venc_device,
 	&msm_device_i2c,
 	&htc_battery_pdev,
 	&ds2746_battery_pdev,
@@ -1703,15 +1687,6 @@ static int __init pmem_adsp_size_setup(char *p)
 }
 early_param("pmem_adsp_size", pmem_adsp_size_setup);
 
-
-static unsigned pmem_audio_size = MSM_AUDIO_SIZE;
-static int __init pmem_audio_size_setup(char *p)
-{
-	pmem_audio_size = memparse(p, NULL);
-	return 0;
-}
-early_param("audio_size", pmem_audio_size_setup);
-
 static struct memtype_reserve qsd8x50_reserve_table[] __initdata = {
 	[MEMTYPE_SMI] = {
 	},
@@ -1736,8 +1711,6 @@ static void __init size_pmem_devices(void)
 	size_pmem_device(&android_pmem_adsp_pdata, 0, pmem_adsp_size);
 	size_pmem_device(&android_pmem_pdata, 0, pmem_mdp_size);
 	size_pmem_device(&android_pmem_venc_pdata, 0, pmem_venc_size);
-	size_pmem_device(&android_pmem_audio_pdata, 0, pmem_audio_size);
-	//android_pmem_kernel_ebi1_pdata.size = pmem_kernel_ebi1_size;
 	qsd8x50_reserve_table[MEMTYPE_EBI1].size += PMEM_KERNEL_EBI1_SIZE;
 #endif
 }
@@ -1757,8 +1730,6 @@ static void __init reserve_pmem_memory(void)
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
 	reserve_memory_for(&android_pmem_venc_pdata);
-	reserve_memory_for(&android_pmem_audio_pdata);
-	//reserve_memory_for(&android_pmem_kernel_ebi1_pdata);
 #endif
 }
 

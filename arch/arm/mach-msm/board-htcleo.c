@@ -37,6 +37,7 @@
 #include <linux/ds2746_battery.h>
 #include <linux/msm_kgsl.h>
 #include <linux/regulator/machine.h>
+#include <linux/ion.h>
 
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
@@ -1158,7 +1159,7 @@ unsigned msm_num_footswitch_devices = ARRAY_SIZE(msm_footswitch_devices);
 ///////////////////////////////////////////////////////////////////////
 // Memory
 ///////////////////////////////////////////////////////////////////////
-
+/* PMEM Heaps */
 #define MSM_PMEM_SF_SIZE	0x1700000
 #define MSM_AUDIO_SIZE		0x80000
 
@@ -1200,6 +1201,14 @@ static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
 	.cached = 1,
 	.memory_type = MEMTYPE_EBI1,
+};
+
+static struct platform_device android_pmem_adsp_device = {
+	.name		= "android_pmem",
+	.id		= 1,
+	.dev		= {
+		.platform_data = &android_pmem_adsp_pdata,
+	},
 };
 
 static struct android_pmem_platform_data android_pmem_venc_pdata = {
@@ -1255,6 +1264,43 @@ static struct platform_device android_pmem_venc_device = {
 	.id = 5,
 	.dev = { .platform_data = &android_pmem_venc_pdata },
 };
+/* end pmem heaps */
+
+/* ion heaps */
+#ifdef CONFIG_ION_MSM
+static struct ion_co_heap_pdata co_ion_pdata = {
+	.adjacent_mem_id = INVALID_HEAP_ID,
+	.align = PAGE_SIZE,
+};
+
+static struct ion_platform_data ion_pdata = {
+	.nr = 2,
+	.heaps = {
+		{
+			.id	= ION_SYSTEM_HEAP_ID,
+			.type	= ION_HEAP_TYPE_SYSTEM,
+			.name	= ION_VMALLOC_HEAP_NAME,
+		},
+		/* PMEM_MDP = SF */
+		{
+			.id	= ION_SF_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_SF_HEAP_NAME,
+			.base	= MSM_PMEM_MDP_BASE,
+			.size	= MSM_PMEM_MDP_SIZE,
+			.memory_type = ION_EBI_TYPE,
+			.extra_data = (void *)&co_ion_pdata,
+		},
+	}
+};
+
+static struct platform_device ion_dev = {
+	.name = "ion-msm",
+	.id = 1,
+	.dev = { .platform_data = &ion_pdata },
+};
+#endif
+/* end ion heaps */
 
 ///////////////////////////////////////////////////////////////////////
 // RAM-Console
@@ -1496,7 +1542,6 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_uart_dm1,
 	&htcleo_rfkill,
 	&msm_device_otg,
-//	&msm_device_gadget_peripheral,
 	&qsd_device_spi,
 	&msm_device_dmov,
 	&msm_device_nand,
@@ -1505,8 +1550,7 @@ static struct platform_device *devices[] __initdata =
 	&android_pmem_device,
 	&android_pmem_adsp_device,
 	&android_pmem_audio_device,
-    &android_pmem_venc_device,
-//    &android_pmem_kernel_ebi1_device,
+	&android_pmem_venc_device,
 	&msm_device_i2c,
 	&htc_battery_pdev,
 	&ds2746_battery_pdev,
@@ -1517,6 +1561,9 @@ static struct platform_device *devices[] __initdata =
 	&htc_headset_gpio,
 #ifdef CONFIG_HTCLEO_BTN_BACKLIGHT_MANAGER
 	&btn_backlight_manager,
+#endif
+#ifdef CONFIG_ION_MSM
+	&ion_dev,
 #endif
 };
 ///////////////////////////////////////////////////////////////////////
@@ -1802,7 +1849,7 @@ static void __init htcleo_init(void)
 	do_sdc1_reset();
 	msm_clock_init(&qds8x50_clock_init_data);
 	acpuclk_init(&acpuclk_8x50_soc_data);
-	
+
 	init_dex_comm();
 
 #ifdef CONFIG_SERIAL_MSM_HS
@@ -1830,10 +1877,10 @@ static void __init htcleo_init(void)
 	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
 
 	i2c_register_board_info(0, base_i2c_devices, ARRAY_SIZE(base_i2c_devices));
-	
+
 	htcleo_init_mmc(0);
 	platform_device_register(&htcleo_timed_gpios);
-	
+
 #ifdef CONFIG_HTCLEO_BLINK_ON_BOOT
 	/* Blink the camera LED shortly to show that we're alive! */
 	htcleo_blink_camera_led();
@@ -1869,7 +1916,7 @@ static void __init htcleo_map_io(void)
 	msm_map_qsd8x50_io();
 	if (socinfo_init() < 0)
 		printk(KERN_ERR "%s: socinfo_init() failed!\n",__func__);
-	
+
 #if defined(CONFIG_VERY_EARLY_CONSOLE)
 // Init our consoles _really_ early
 #if defined(CONFIG_HTC_FB_CONSOLE)

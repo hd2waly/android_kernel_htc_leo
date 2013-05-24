@@ -23,6 +23,7 @@
 #include <linux/clk.h>
 #include <linux/timer.h>
 #include <linux/file.h>
+#include <linux/android_pmem.h>
 #include <linux/major.h>
 
 #include <mach/msm_iomap.h>

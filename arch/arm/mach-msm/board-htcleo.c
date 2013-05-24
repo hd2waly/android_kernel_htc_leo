@@ -1094,26 +1094,17 @@ static struct resource kgsl_3d0_resources[] = {
 };
 
 static struct kgsl_device_platform_data kgsl_3d0_pdata = {
-	.pwr_data = {
-		.pwrlevel = {
-			{
-				.gpu_freq = 0,
-				.bus_freq = 128000000,
-			},
-		},
-		.init_level = 0,
-		.num_levels = 1,
-		.set_grp_async = NULL,
-		.idle_timeout = HZ/5,
-	},
-	.clk = {
-		.name = {
-			.clk = "core_clk",
+	.pwrlevel = {
+		{
+			.gpu_freq = 0,
+			.bus_freq = 128000000,
 		},
 	},
-	.imem_clk_name = {
-		.clk = "iface_clk",
-	},
+	.init_level = 0,
+	.num_levels = 1,
+	.set_grp_async = NULL,
+	.idle_timeout = HZ/5,
+	.clk_map = KGSL_CLK_GRP | KGSL_CLK_IMEM,
 };
 
 struct platform_device msm_kgsl_3d0 = {
@@ -1190,12 +1181,6 @@ static struct platform_device android_pmem_device = {
 	.name = "android_pmem",
 	.id = 0,
 	.dev = { .platform_data = &android_pmem_pdata },
-};
-
-static struct platform_device android_pmem_adsp_device = {
-	.name = "android_pmem",
-	.id = 1,
-	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
 #ifdef CONFIG_KERNEL_PMEM_SMI_REGION
@@ -1496,7 +1481,6 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_rtc,
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_audio_device,
 	&android_pmem_venc_device,
 	&msm_device_i2c,
 	&htc_battery_pdev,

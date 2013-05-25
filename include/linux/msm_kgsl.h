@@ -176,6 +176,10 @@ struct kgsl_clk_data {
 
 struct kgsl_device_platform_data {
 	struct kgsl_pwrlevel pwrlevel[KGSL_MAX_PWRLEVELS];
+        struct kgsl_device_pwr_data pwr_data;
+        struct kgsl_clk_data clk;
+        /* imem_clk_name is for 3d only, not used in 2d devices */
+        struct kgsl_grp_clk_name imem_clk_name;
 	int init_level;
 	int num_levels;
 	int (*set_grp_async)(void);

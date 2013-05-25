@@ -149,6 +149,7 @@ static struct z180_device device_2d0 = {
 			.config = Z180_MMU_CONFIG,
 		},
 		.pwrctrl = {
+			.pwr_rail = PWR_RAIL_GRP_2D_CLK,
 			.regulator_name = "fs_gfx2d0",
 			.irq_name = KGSL_2D0_IRQ,
 		},
@@ -180,6 +181,7 @@ static struct z180_device device_2d1 = {
 			.config = Z180_MMU_CONFIG,
 		},
 		.pwrctrl = {
+			.pwr_rail = PWR_RAIL_GRP_2D_CLK,
 			.regulator_name = "fs_gfx2d1",
 			.irq_name = KGSL_2D1_IRQ,
 		},

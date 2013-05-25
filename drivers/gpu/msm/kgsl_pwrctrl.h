@@ -13,6 +13,8 @@
 #ifndef __KGSL_PWRCTRL_H
 #define __KGSL_PWRCTRL_H
 
+#include <mach/internal_power_rail.h>
+
 /*****************************************************************************
 ** power flags
 *****************************************************************************/
@@ -39,6 +41,7 @@ struct kgsl_busy {
 struct kgsl_pwrctrl {
 	int interrupt_num;
 	int have_irq;
+	unsigned int pwr_rail;
 	struct clk *ebi1_clk;
 	struct clk *grp_clks[KGSL_MAX_CLKS];
 	unsigned long power_flags;
@@ -53,6 +56,7 @@ struct kgsl_pwrctrl {
 	unsigned int idle_needed;
 	const char *regulator_name;
 	const char *irq_name;
+	const char *src_clk_name;
 	s64 time;
 	struct kgsl_busy busy;
 	unsigned int restore_slumber;

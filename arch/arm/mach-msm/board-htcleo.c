@@ -1157,6 +1157,25 @@ static struct android_pmem_platform_data android_pmem_kernel_smi_pdata = {
 
 #endif
 
+#ifndef CONFIG_ION_MSM
+static struct android_pmem_platform_data mdp_pmem_pdata = {
+	.name		= "pmem",
+	.start		= MSM_PMEM_MDP_BASE,
+	.size		= MSM_PMEM_MDP_SIZE,
+/*	.no_allocator	= 0,*/
+	.allocator_type = PMEM_ALLOCATORTYPE_ALLORNOTHING,
+	.cached		= 1,
+};
+
+static struct platform_device android_pmem_mdp_device = {
+	.name		= "android_pmem",
+	.id		= 0,
+	.dev		= {
+		.platform_data = &mdp_pmem_pdata
+	},
+};
+#endif
+
 static struct android_pmem_platform_data android_pmem_pdata = {
 	.name = "pmem",
 	.allocator_type = PMEM_ALLOCATORTYPE_ALLORNOTHING,
@@ -1502,7 +1521,9 @@ static struct platform_device *devices[] __initdata =
 #ifdef CONFIG_HTCLEO_BTN_BACKLIGHT_MANAGER
 	&btn_backlight_manager,
 #endif
-#ifdef CONFIG_ION_MSM
+#ifndef CONFIG_ION_MSM
+	&android_pmem_mdp_device,
+#else
 	&ion_dev,
 #endif
 };

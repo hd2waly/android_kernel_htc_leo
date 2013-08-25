@@ -78,7 +78,10 @@
 #include "footswitch.h"
 #include "pm.h"
 #include "pm-boot.h"
+
+#ifdef CONFIG_ION
 #include <linux/ion.h>
+#endif
 
 #define ATAG_MAGLDR_BOOT    0x4C47414D
 struct tag_magldr_entry
@@ -1523,11 +1526,10 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_nand,
 	&msm_device_smd,
 	&msm_device_rtc,
-#ifndef CONFIG_ION_MSM
 	&android_pmem_device,
 	&android_pmem_adsp_device,
 	&android_pmem_venc_device,
-#else
+#ifdef CONFIG_ION_MSM
 	&ion_dev,
 #endif
 	&msm_device_i2c,

@@ -149,3 +149,4 @@ static inline int domain_has_cap(struct iommu_domain *domain,
 #endif /* CONFIG_IOMMU_API */
 
 #endif /* __LINUX_IOMMU_H */
+

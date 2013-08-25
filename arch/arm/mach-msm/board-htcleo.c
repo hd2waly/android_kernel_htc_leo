@@ -78,6 +78,7 @@
 #include "footswitch.h"
 #include "pm.h"
 #include "pm-boot.h"
+#include <linux/ion.h>
 
 #define ATAG_MAGLDR_BOOT    0x4C47414D
 struct tag_magldr_entry
@@ -1203,6 +1204,77 @@ static struct platform_device android_pmem_venc_device = {
 	.dev = { .platform_data = &android_pmem_venc_pdata },
 };
 
+#ifdef CONFIG_ION_MSM
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+#define MSM_ION_HEAP_NUM 5
+#else
+#define MSM_ION_HEAP_NUM 1
+#endif
+
+#define MSM_ION_CAMERA_SIZE 0x2800000
+#define MSM_ION_ROTATOR_SIZE 0x2C0000
+#define MSM_ION_SF_SIZE 0x2000000
+#define MSM_ION_AUDIO_SIZE 0x700000
+
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+static struct ion_co_heap_pdata co_ion_pdata = {
+.adjacent_mem_id = INVALID_HEAP_ID,
+.align = PAGE_SIZE,
+};
+#endif
+
+static struct ion_platform_data ion_pdata = {
+.nr = MSM_ION_HEAP_NUM,
+.heaps = {
+{
+.id	= ION_SYSTEM_HEAP_ID,
+.type	= ION_HEAP_TYPE_SYSTEM,
+.name	= ION_VMALLOC_HEAP_NAME,
+},
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+{
+.id	= ION_CAMERA_HEAP_ID,
+.type	= ION_HEAP_TYPE_CARVEOUT,
+.name	= ION_CAMERA_HEAP_NAME,
+.size	= MSM_ION_CAMERA_SIZE,
+.memory_type = ION_EBI_TYPE,
+.extra_data = &co_ion_pdata,
+},
+{
+.id	= ION_AUDIO_HEAP_ID,
+.type	= ION_HEAP_TYPE_CARVEOUT,
+.name	= ION_AUDIO_HEAP_NAME,
+.size	= MSM_ION_AUDIO_SIZE,
+.memory_type = ION_EBI_TYPE,
+.extra_data = (void *) &co_ion_pdata,
+},
+{
+.id	= ION_CP_ROTATOR_HEAP_ID,
+.type	= ION_HEAP_TYPE_CARVEOUT,
+.name	= ION_ROTATOR_HEAP_NAME,
+.size	= MSM_ION_ROTATOR_SIZE,
+.memory_type = ION_EBI_TYPE,
+.extra_data = &co_ion_pdata,
+},
+{
+.id	= ION_SF_HEAP_ID,
+.type	= ION_HEAP_TYPE_CARVEOUT,
+.name	= ION_SF_HEAP_NAME,
+.size	= MSM_ION_SF_SIZE,
+.memory_type = ION_EBI_TYPE,
+.extra_data = &co_ion_pdata,
+},
+#endif
+}
+};
+
+static struct platform_device ion_dev = {
+.name = "ion-msm",
+.id = 1,
+.dev = { .platform_data = &ion_pdata },
+};
+#endif
+
 ///////////////////////////////////////////////////////////////////////
 // RAM-Console
 ///////////////////////////////////////////////////////////////////////
@@ -1451,9 +1523,13 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_nand,
 	&msm_device_smd,
 	&msm_device_rtc,
+#ifndef CONFIG_ION_MSM
 	&android_pmem_device,
 	&android_pmem_adsp_device,
 	&android_pmem_venc_device,
+#else
+	&ion_dev,
+#endif
 	&msm_device_i2c,
 	&htc_battery_pdev,
 	&ds2746_battery_pdev,
@@ -1655,13 +1731,23 @@ static void __init size_pmem_device(struct android_pmem_platform_data *pdata, un
 static void __init size_pmem_devices(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_ION_MSM
 	size_pmem_device(&android_pmem_adsp_pdata, 0, pmem_adsp_size);
 	size_pmem_device(&android_pmem_pdata, 0, pmem_mdp_size);
 	size_pmem_device(&android_pmem_venc_pdata, 0, pmem_venc_size);
+#endif
 	qsd8x50_reserve_table[MEMTYPE_EBI1].size += PMEM_KERNEL_EBI1_SIZE;
 #endif
 }
 
+static void __init reserve_ion_memory(void) {
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+	qsd8x50_reserve_table[MEMTYPE_EBI0].size += MSM_ION_CAMERA_SIZE;
+	qsd8x50_reserve_table[MEMTYPE_EBI0].size += MSM_ION_AUDIO_SIZE;
+	qsd8x50_reserve_table[MEMTYPE_EBI0].size += MSM_ION_ROTATOR_SIZE;
+	qsd8x50_reserve_table[MEMTYPE_EBI0].size += MSM_ION_SF_SIZE;
+#endif
+}
 
 
 static void __init reserve_memory_for(struct android_pmem_platform_data *p)
@@ -1674,8 +1760,10 @@ static void __init reserve_memory_for(struct android_pmem_platform_data *p)
 static void __init reserve_pmem_memory(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_ION_MSM
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
+#endif
 #endif
 }
 
@@ -1684,6 +1772,7 @@ static void __init qsd8x50_calculate_reserve_sizes(void)
 {
 	size_pmem_devices();
 	reserve_pmem_memory();
+	reserve_ion_memory();
 }
 
 static int qsd8x50_paddr_to_memtype(unsigned int paddr)

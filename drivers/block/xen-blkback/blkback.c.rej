@@ -1,0 +1,10 @@
+--- drivers/block/xen-blkback/blkback.c
++++ drivers/block/xen-blkback/blkback.c
+@@ -623,7 +623,6 @@
+ 		goto fail_response;
+ 	}
+ 
+-	preq.dev           = req->u.rw.handle;
+ 	preq.sector_number = req->u.rw.sector_number;
+ 	preq.nr_sects      = 0;
+ 

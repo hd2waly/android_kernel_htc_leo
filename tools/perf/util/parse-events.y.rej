@@ -1,0 +1,8 @@
+--- tools/perf/util/parse-events.y
++++ tools/perf/util/parse-events.y
+@@ -1,5 +1,4 @@
+ 
+-%name-prefix "parse_events_"
+ %parse-param {struct list_head *list_all}
+ %parse-param {struct list_head *list_event}
+ %parse-param {int *idx}

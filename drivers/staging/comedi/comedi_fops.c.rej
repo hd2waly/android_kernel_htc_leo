@@ -1,0 +1,38 @@
+--- drivers/staging/comedi/comedi_fops.c
++++ drivers/staging/comedi/comedi_fops.c
+@@ -1577,7 +1577,7 @@
+ 
+ 	mask = 0;
+ 	read_subdev = comedi_get_read_subdevice(dev_file_info);
+-	if (read_subdev) {
++	if (read_subdev && read_subdev->async) {
+ 		poll_wait(file, &read_subdev->async->wait_head, wait);
+ 		if (!read_subdev->busy
+ 		    || comedi_buf_read_n_available(read_subdev->async) > 0
+@@ -1587,7 +1587,7 @@
+ 		}
+ 	}
+ 	write_subdev = comedi_get_write_subdevice(dev_file_info);
+-	if (write_subdev) {
++	if (write_subdev && write_subdev->async) {
+ 		poll_wait(file, &write_subdev->async->wait_head, wait);
+ 		comedi_buf_write_alloc(write_subdev->async,
+ 				       write_subdev->async->prealloc_bufsz);
+@@ -1629,7 +1629,7 @@
+ 	}
+ 
+ 	s = comedi_get_write_subdevice(dev_file_info);
+-	if (s == NULL) {
++	if (s == NULL || s->async == NULL) {
+ 		retval = -EIO;
+ 		goto done;
+ 	}
+@@ -1740,7 +1740,7 @@
+ 	}
+ 
+ 	s = comedi_get_read_subdevice(dev_file_info);
+-	if (s == NULL) {
++	if (s == NULL || s->async == NULL) {
+ 		retval = -EIO;
+ 		goto done;
+ 	}

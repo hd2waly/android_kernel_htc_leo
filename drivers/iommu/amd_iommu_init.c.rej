@@ -1,0 +1,32 @@
+--- drivers/iommu/amd_iommu_init.c
++++ drivers/iommu/amd_iommu_init.c
+@@ -1572,8 +1572,6 @@
+ 	if (amd_iommu_pd_alloc_bitmap == NULL)
+ 		goto free;
+ 
+-	/* init the device table */
+-	init_device_table();
+ 
+ 	/*
+ 	 * let all alias entries point to itself
+@@ -1655,6 +1653,7 @@
+  */
+ static int __init amd_iommu_init(void)
+ {
++	struct amd_iommu *iommu;
+ 	int ret = 0;
+ 
+ 	ret = amd_iommu_init_hardware();
+@@ -1673,6 +1672,12 @@
+ 	if (ret)
+ 		goto free;
+ 
++	/* init the device table */
++	init_device_table();
++
++	for_each_iommu(iommu)
++		iommu_flush_all_caches(iommu);
++
+ 	amd_iommu_init_api();
+ 
+ 	x86_platform.iommu_shutdown = disable_iommus;

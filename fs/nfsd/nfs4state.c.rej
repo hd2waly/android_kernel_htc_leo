@@ -1,0 +1,11 @@
+--- fs/nfsd/nfs4state.c
++++ fs/nfsd/nfs4state.c
+@@ -1053,6 +1053,8 @@
+ 		put_group_info(clp->cl_cred.cr_group_info);
+ 	kfree(clp->cl_principal);
+ 	kfree(clp->cl_name.data);
++	idr_remove_all(&clp->cl_stateids);
++	idr_destroy(&clp->cl_stateids);
+ 	kfree(clp);
+ }
+ 
